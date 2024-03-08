@@ -19,7 +19,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
     @Override
     public boolean doPreDeleteUserWithID
             (String s, UserStoreManager userStoreManager) throws UserStoreException {
-
+            System.out.println("doPreDeleteUserWithID");
         if (s.contains(systemUserPrefix)) {
             return false;
         } else {
@@ -36,7 +36,8 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
     @Override
     public boolean doPreDeleteUser
             (String s, UserStoreManager userStoreManager) throws UserStoreException {
-
+                System.out.println("doPreDeleteUser");
+                System.out.println("Yaaaaaaaaay!!!!!!!!!!!");
         if (s.contains(systemUserPrefix)) {
             return false;
         } else {
