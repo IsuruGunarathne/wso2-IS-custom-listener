@@ -4,22 +4,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.wso2</groupId>
-    <artifactId>org.wso2.custom.user.operation.event.listener</artifactId>
+    <groupId>org.wso2.custom</groupId>
+    <artifactId>org.wso2.custom.user.operation.event.listener.CustomUserOperationEventListener</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
 
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <org.apache.felix.scr.ds-annotations.version>1.2.10</org.apache.felix.scr.ds-annotations.version>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
-            <version>7.0.83</version>
+            <version>${carbon.identity.framework.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
@@ -38,4 +34,62 @@
             </releases>
         </repository>
     </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+                <version>${maven.scr.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-scr-scrdescriptor</id>
+                        <goals>
+                            <goal>scr</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>5.1.9</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Private-Package>org.wso2.custom.user.operation.event.listener.internal</Private-Package>
+                        <Import-Package>
+                            org.wso2.carbon.core.*,
+                            org.osgi.framework,
+                            ;resolution:=optional,
+                            org.apache.axiom.*; version=,
+                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
+                            org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}"
+                        </Import-Package>
+                        <Export-Package>!org.wso2.custom.user.operation.event.listener.internal,
+                            org.wso2.custom.user.operation.event.listener.*
+                        </Export-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <properties>
+        <org.wso2.carbon.user.core.version>4.6.1</org.wso2.carbon.user.core.version>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.scr.plugin.version>1.25.0</maven.scr.plugin.version>
+        <maven.bundle.plugin.version>4.2.0</maven.bundle.plugin.version>
+        <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
+        <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <commons-collections.wso2.osgi.version.range>[3.2.0,4.0.0)</commons-collections.wso2.osgi.version.range>
+        <org.apache.felix.scr.ds-annotations.version>1.2.10</org.apache.felix.scr.ds-annotations.version>
+        <carbon.identity.framework.version>5.19.35</carbon.identity.framework.version>
+    </properties>
 </project>
