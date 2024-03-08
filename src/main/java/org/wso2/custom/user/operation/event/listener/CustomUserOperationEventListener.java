@@ -1,4 +1,6 @@
 package org.wso2.custom.user.operation.event.listener;
+import java.util.Map;
+
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.*;
@@ -14,17 +16,6 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
     public CustomUserOperationEventListener() {
         super();
-    }
-
-    @Override
-    public boolean doPreDeleteUserWithID
-            (String s, UserStoreManager userStoreManager) throws UserStoreException {
-            System.out.println("doPreDeleteUserWithID");
-        if (s.contains(systemUserPrefix)) {
-            return false;
-        } else {
-            return true;
-        }
     }
 
 
@@ -45,4 +36,27 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
         }
     }
 
+    @Override
+    public boolean doPreDeleteUserWithID
+            (String s, UserStoreManager userStoreManager) throws UserStoreException {
+            System.out.println("doPreDeleteUserWithID");
+        if (s.contains(systemUserPrefix)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    @Override
+    public boolean doPostAddUser
+            (String userName, Object credential, String[] roleList, Map<String, String> claims,
+            String profile, UserStoreManager userStoreManager) throws UserStoreException {
+                System.out.println("doPostAddUser");
+                System.out.println("");
+                System.out.println("A user was added to the system");
+                System.out.println("");
+                System.out.println(userName);
+
+        return true;
+    }
 }
