@@ -55,7 +55,11 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                 System.out.println("");
                 System.out.println("A user was added to the system");
                 System.out.println("");
-                System.out.println(userName);
+                System.out.println("User Name: " + userName);
+                System.out.println("Role List: " + roleList);
+                System.out.println("Claims: " + claims);
+                System.out.println("Profile: " + profile);
+                System.out.println("");
 
         return true;
     }
