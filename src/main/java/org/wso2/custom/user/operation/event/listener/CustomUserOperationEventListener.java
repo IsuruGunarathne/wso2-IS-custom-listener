@@ -56,9 +56,21 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                 System.out.println("A user was added to the system");
                 System.out.println("");
                 System.out.println("User Name: " + userName);
+                System.out.println("Credential: " + credential);
+                System.out.println("");
+                System.out.println("");
                 System.out.println("Role List: " + roleList);
-                System.out.println("Claims: " + claims);
-                System.out.println("Profile: " + profile);
+                System.out.println("");
+                System.out.println("");
+                System.out.println("Profile; ");
+                System.out.println(profile);
+                System.out.println("");
+                System.out.println("claims");
+                // print the claims line by line
+                for (Map.Entry<String, String> entry : claims.entrySet()) {
+                    System.out.println(entry.getKey() + " : " + entry.getValue());
+                }
+                System.out.println("");
                 System.out.println("");
 
         return true;
