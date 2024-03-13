@@ -5,8 +5,8 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.*;
 
-
 import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.CqlSessionBuilder;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 
@@ -37,25 +37,25 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
     }
 
     public static void test() {
+        // Cassandra connection parameters
+        String contactPoint = "127.0.0.1"; // Change this to your Cassandra node's IP
+        int port = 9042; // Default Cassandra port
+        String keyspace = "sync"; // Keyspace name
+        String table = "user_data"; // Table name
 
-        System.out.println("test function ran");
-        try (CqlSession session = connect()) {
-            ResultSet rs = session.execute("SELECT * FROM user_data;");
-            System.out.println("Cassandra connected one");
-            for (Row row : rs) {
-                // Process rows here
-                System.out.println("Cassandra connected two");
-                // System.out.printf(
-                //     "Username: %s, Credential: %s, RoleList: %s, Claims: %s, Profile: %s\n",
-                //     row.getString("username"),
-                //     row.getString("credential"),
-                //     row.getList("rolelist", String.class),
-                //     row.getMap("claims", String.class, String.class),
-                //     row.getString("profile")
-                // );
-            }
+        // Establishing connection to Cassandra
+        try (CqlSession session = new CqlSessionBuilder()
+                .addContactPoint(new InetSocketAddress(contactPoint, port))
+                .withLocalDatacenter("datacenter1") // Adjust to your local datacenter name
+                .build()) {
+
+            // Writing data to the user_data table
+            String query = String.format("INSERT INTO %s.%s (user_id, user_name) VALUES ('tom','dick');", keyspace, table);
+            session.execute(query);
+
+            System.out.println("Data written to user_data table successfully.");
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error: " + e.getMessage());
         }
     }
 

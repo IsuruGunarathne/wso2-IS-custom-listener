@@ -30,7 +30,7 @@
         <dependency>
             <groupId>com.datastax.oss</groupId>
             <artifactId>java-driver-core</artifactId>
-            <version>4.3.0</version> <!-- Use the appropriate version -->
+            <version>4.1.0</version> <!-- Use the appropriate version -->
         </dependency>
     </dependencies>
 
