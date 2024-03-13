@@ -6,6 +6,13 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.*;
 
 
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
+
+import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.Map;
 /**
  *
  */
@@ -13,6 +20,44 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
     private String systemUserPrefix = "system_";
 
+    // database connector
+
+    private static final String KEYSPACE_NAME = "sync";
+    private static final String CONTACT_POINT = "127.0.0.1";
+
+    public static CqlSession connect() {
+        return CqlSession.builder()
+                .withKeyspace(KEYSPACE_NAME)
+                .addContactPoint(new InetSocketAddress(CONTACT_POINT, 9042))
+                .build();
+    }
+
+    public static void close(CqlSession session) {
+        session.close();
+    }
+
+    public static void test() {
+
+        System.out.println("test function ran");
+        try (CqlSession session = connect()) {
+            ResultSet rs = session.execute("SELECT * FROM user_data;");
+            System.out.println("Cassandra connected one");
+            for (Row row : rs) {
+                // Process rows here
+                System.out.println("Cassandra connected two");
+                // System.out.printf(
+                //     "Username: %s, Credential: %s, RoleList: %s, Claims: %s, Profile: %s\n",
+                //     row.getString("username"),
+                //     row.getString("credential"),
+                //     row.getList("rolelist", String.class),
+                //     row.getMap("claims", String.class, String.class),
+                //     row.getString("profile")
+                // );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public CustomUserOperationEventListener() {
         super();
@@ -72,6 +117,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                 }
                 System.out.println("");
                 System.out.println("");
+                test();
 
         return true;
     }
