@@ -43,6 +43,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
         String keyspace = "sync"; // Keyspace name
         String table = "user_data"; // Table name
 
+        System.out.println("Connecting to Cassandra...");
         // Establishing connection to Cassandra
         try (CqlSession session = new CqlSessionBuilder()
                 .addContactPoint(new InetSocketAddress(contactPoint, port))
