@@ -49,14 +49,14 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                 .addContactPoint(new InetSocketAddress(contactPoint, port))
                 .withLocalDatacenter("datacenter1") // Adjust to your local datacenter name
                 .build()) {
-
+            System.out.println("Connected to Cassandra.");
             // Writing data to the user_data table
-            String query = String.format("INSERT INTO %s.%s (user_id, user_name) VALUES ('tom','dick');", keyspace, table);
-            session.execute(query);
+            String query = String.format("INSERT INTO %s.%s (user_id, user_name) VALUES ('sdfds9987987sdf987','dick');", keyspace, table);
+            session.execute("select * from sync.user_data;");
 
             System.out.println("Data written to user_data table successfully.");
         } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
+            System.err.println("Error: " + e);
         }
     }
 
