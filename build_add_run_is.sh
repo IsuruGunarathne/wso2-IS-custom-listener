@@ -14,6 +14,9 @@ cp target/org.wso2.custom.user.operation.event.listener-1.0-SNAPSHOT.jar wso2is-
 # copy libraries from libraries directory to the lib folder
 cp libraries/* wso2is-7.0.0/repository/components/lib
 
+# copy deployment.toml to the conf folder
+cp deployment/deployment.toml wso2is-7.0.0/repository/conf
+
 # restart the server
 echo "Restarting the server"
 ./wso2is-7.0.0/bin/wso2server.sh
