@@ -8,3 +8,8 @@ roleList LIST<TEXT>,
 claims MAP<TEXT, TEXT>,
 profile TEXT
 );
+
+CREATE TABLE user_data (
+    user_id TEXT PRIMARY KEY,
+    user_name TEXT,
+);
