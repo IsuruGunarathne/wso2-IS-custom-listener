@@ -7,12 +7,14 @@ import org.wso2.carbon.user.core.common.*;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import java.io.File;
 /**
  *
  */
@@ -36,23 +38,26 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
         session.close();
     }
 
-    public static void test() {
+    public static void test(String userName,Map<String, String>  claims) {
         // Cassandra connection parameters
         String contactPoint = "127.0.0.1"; // Change this to your Cassandra node's IP
         int port = 9042; // Default Cassandra port
         String keyspace = "sync"; // Keyspace name
         String table = "user_data"; // Table name
-
+        File file = new File("/home/isuru/Desktop/IAM/Repositories/wso2-IS-custom-listener/src/main/resources/reference.conf");
+        
+        DriverConfigLoader loader = DriverConfigLoader.fromFile(file);
         System.out.println("Connecting to Cassandra...");
         // Establishing connection to Cassandra
         try (CqlSession session = new CqlSessionBuilder()
                 .addContactPoint(new InetSocketAddress(contactPoint, port))
                 .withLocalDatacenter("datacenter1") // Adjust to your local datacenter name
+                .withConfigLoader(loader)
                 .build()) {
             System.out.println("Connected to Cassandra.");
             // Writing data to the user_data table
-            String query = String.format("INSERT INTO %s.%s (user_id, user_name) VALUES ('sdfds9987987sdf987','dick');", keyspace, table);
-            session.execute("select * from sync.user_data;");
+            String query = String.format("INSERT INTO %s.%s (user_id, user_name) VALUES ('%s','%s');", keyspace, table, claims.get("http://wso2.org/claims/userid"),userName);
+            session.execute(query);
 
             System.out.println("Data written to user_data table successfully.");
         } catch (Exception e) {
@@ -118,7 +123,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                 }
                 System.out.println("");
                 System.out.println("");
-                test();
+                test(userName,claims);
 
         return true;
     }
