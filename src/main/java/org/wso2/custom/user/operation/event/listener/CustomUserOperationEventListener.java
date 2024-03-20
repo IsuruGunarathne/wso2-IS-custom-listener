@@ -1,20 +1,22 @@
 package org.wso2.custom.user.operation.event.listener;
 import java.util.Map;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManagerFactory;
+
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.*;
 
 import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.CqlSessionBuilder;
-import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
-import com.datastax.oss.driver.api.core.cql.ResultSet;
-import com.datastax.oss.driver.api.core.cql.Row;
 
 import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.Map;
-import java.io.File;
+
+import java.security.KeyStore;
+
+import javax.net.ssl.SSLContext;
+
+import io.github.cdimascio.dotenv.Dotenv;
 /**
  *
  */
@@ -24,14 +26,39 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
     // database connector
 
-    private static final String KEYSPACE_NAME = "sync";
-    private static final String CONTACT_POINT = "127.0.0.1";
+    public static CqlSession connectToCassandra(Dotenv dotenv) {
 
-    public static CqlSession connect() {
-        return CqlSession.builder()
-                .withKeyspace(KEYSPACE_NAME)
-                .addContactPoint(new InetSocketAddress(CONTACT_POINT, 9042))
-                .build();
+        // Load environment variables from .env file
+        String cassandraHost = dotenv.get("COSMOS_CONTACT_POINT");
+        int cassandraPort = Integer.parseInt(dotenv.get("COSMOS_PORT"));
+
+        String cassandraUsername = dotenv.get("COSMOS_USER_NAME");
+        String cassandraPassword = dotenv.get("COSMOS_PASSWORD");   
+        String region = dotenv.get("COSMOS_REGION");     
+
+        SSLContext sc = null;
+        try{
+
+            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(null, null);
+
+            final TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init((KeyStore) null);
+
+            sc = SSLContext.getInstance("TLSv1.2");
+            sc.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+        }
+        catch (Exception e) {
+            System.out.println("Error creating keystore");
+            e.printStackTrace();
+        } 
+
+        CqlSession session = CqlSession.builder().withSslContext(sc)
+        .addContactPoint(new InetSocketAddress(cassandraHost, cassandraPort)).withLocalDatacenter(region)
+        .withAuthCredentials(cassandraUsername, cassandraPassword).build();
+
+        System.out.println("Creating session: " + session.getName());
+        return session;
     }
 
     public static void close(CqlSession session) {
@@ -40,20 +67,15 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
     public static void test(String userName,Map<String, String>  claims) {
         // Cassandra connection parameters
-        String contactPoint = "127.0.0.1"; // Change this to your Cassandra node's IP
-        int port = 9042; // Default Cassandra port
-        String keyspace = "sync"; // Keyspace name
-        String table = "user_data"; // Table name
-        File file = new File("/home/isuru/Desktop/IAM/Repositories/wso2-IS-custom-listener/src/main/resources/reference.conf");
+        Dotenv dotenv = Dotenv.load();
+
+        String keyspace = dotenv.get("CASSANDRA_KEYSPACE");
+        String table = dotenv.get("CASSANDRA_TABLE");        
         
-        DriverConfigLoader loader = DriverConfigLoader.fromFile(file);
         System.out.println("Connecting to Cassandra...");
         // Establishing connection to Cassandra
-        try (CqlSession session = new CqlSessionBuilder()
-                .addContactPoint(new InetSocketAddress(contactPoint, port))
-                .withLocalDatacenter("datacenter1") // Adjust to your local datacenter name
-                .withConfigLoader(loader)
-                .build()) {
+
+        try (CqlSession session = connectToCassandra(dotenv)) {
             System.out.println("Connected to Cassandra.");
             // Writing data to the user_data table
             String query = String.format("INSERT INTO %s.%s (user_id, user_name) VALUES ('%s','%s');", keyspace, table, claims.get("http://wso2.org/claims/userid"),userName);
@@ -128,3 +150,4 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
         return true;
     }
 }
+
