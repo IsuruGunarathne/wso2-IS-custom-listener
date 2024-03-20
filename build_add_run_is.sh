@@ -17,6 +17,9 @@ cp libraries/* wso2is-7.0.0/repository/components/lib
 # copy deployment.toml to the conf folder
 cp deployment/deployment.toml wso2is-7.0.0/repository/conf
 
+# copy .env to wso2is-7.0.0
+cp .env wso2is-7.0.0
+
 # restart the server
 echo "Restarting the server"
 ./wso2is-7.0.0/bin/wso2server.sh
