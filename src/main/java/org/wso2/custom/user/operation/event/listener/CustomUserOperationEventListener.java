@@ -9,6 +9,7 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.*;
 
 import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 
 import java.net.InetSocketAddress;
 
@@ -17,6 +18,8 @@ import java.security.KeyStore;
 import javax.net.ssl.SSLContext;
 
 import io.github.cdimascio.dotenv.Dotenv;
+
+import java.io.File;
 /**
  *
  */
@@ -34,7 +37,10 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
         String cassandraUsername = dotenv.get("COSMOS_USER_NAME");
         String cassandraPassword = dotenv.get("COSMOS_PASSWORD");   
-        String region = dotenv.get("COSMOS_REGION");     
+        String region = dotenv.get("COSMOS_REGION");    
+        
+        File file = new File("/home/isuru/Desktop/IAM/Repositories/wso2-IS-custom-listener/src/main/resources/reference.conf");
+        DriverConfigLoader loader = DriverConfigLoader.fromFile(file);
 
         SSLContext sc = null;
         try{
@@ -55,6 +61,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
         CqlSession session = CqlSession.builder().withSslContext(sc)
         .addContactPoint(new InetSocketAddress(cassandraHost, cassandraPort)).withLocalDatacenter(region)
+        .withConfigLoader(loader)   
         .withAuthCredentials(cassandraUsername, cassandraPassword).build();
 
         System.out.println("Creating session: " + session.getName());
