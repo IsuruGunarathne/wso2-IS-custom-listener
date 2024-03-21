@@ -1,6 +1,20 @@
-jarFile= org.wso2.custom.user.operation.event.listener-1.0-SNAPSHOT.jar
-target_path= target
-destination= wso2is-7.0.0/repository/components/dropins
+# Delete the existing wso2is-7.0.0 folder
+rm -rf wso2is-7.0.0
+
+# Extract the ZIP file
+# rc7
+unzip wso2is-7.0.0.zip
+
+# Copy the wso2is-7.0.0 folder in the  extracted folder to the destination directory
+
+# rc7
+# cp -r wso2is-7.0.0-rc7/wso2is-7.0.0 .
+
+# Remove the extracted folder
+# rc7
+# rm -rf wso2is-7.0.0
+
+echo "Extraction and copying completed."
 
 # build the project
 
@@ -16,6 +30,9 @@ cp libraries/* wso2is-7.0.0/repository/components/lib
 
 # copy deployment.toml to the conf folder
 cp deployment/deployment.toml wso2is-7.0.0/repository/conf
+
+# copy .env to wso2is-7.0.0
+cp .env wso2is-7.0.0
 
 # restart the server
 echo "Restarting the server"

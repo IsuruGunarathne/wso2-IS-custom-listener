@@ -13,3 +13,7 @@ The folder should be named `wso2is-7.0.0`
 This will automatically build the required jar and copy the jar to the correct location in the IS and start the IS
 
 `./build_add_run_is.sh`
+
+### env
+
+copy the .env file to wso2is-7.0.0 directory, this file has the credentials for the cassandra connection (cosmos_db)
