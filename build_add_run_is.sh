@@ -2,13 +2,17 @@
 rm -rf wso2is-7.0.0
 
 # Extract the ZIP file
-unzip wso2is-7.0.0-rc7.zip
+# rc7
+unzip wso2is-7.0.0.zip
 
 # Copy the wso2is-7.0.0 folder in the  extracted folder to the destination directory
-cp -r wso2is-7.0.0-rc7/wso2is-7.0.0 .
+
+# rc7
+# cp -r wso2is-7.0.0-rc7/wso2is-7.0.0 .
 
 # Remove the extracted folder
-rm -rf wso2is-7.0.0-rc7
+# rc7
+# rm -rf wso2is-7.0.0
 
 echo "Extraction and copying completed."
 
