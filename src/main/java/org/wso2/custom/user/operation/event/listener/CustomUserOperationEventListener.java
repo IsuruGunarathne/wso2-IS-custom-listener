@@ -31,6 +31,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
     public static CqlSession connectToCassandra(Dotenv dotenv) {
 
+        System.out.println("Connecting to Cassandra.......");
         // Load environment variables from .env file
         String cassandraHost = dotenv.get("COSMOS_CONTACT_POINT");
         int cassandraPort = Integer.parseInt(dotenv.get("COSMOS_PORT"));
@@ -39,7 +40,11 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
         String cassandraPassword = dotenv.get("COSMOS_PASSWORD");   
         String region = dotenv.get("COSMOS_REGION");    
         
-        File file = new File("/home/isuru/Desktop/IAM/Repositories/wso2-IS-custom-listener/src/main/resources/reference.conf");
+        // put the absolute path to the reference.conf file here
+        File file = new File("/home/isuru/Desktop/IAM/wso2-IS-custom-listener/src/main/resources/reference.conf");
+        // print the content of the file
+        System.out.println("File path: " + file.getAbsolutePath());
+        System.out.println("File exists: " + file.exists());
         DriverConfigLoader loader = DriverConfigLoader.fromFile(file);
 
         SSLContext sc = null;
