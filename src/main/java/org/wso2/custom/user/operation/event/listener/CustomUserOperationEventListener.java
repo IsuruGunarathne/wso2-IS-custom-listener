@@ -135,6 +135,8 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
             session.execute(boundStatement);
 
             System.out.println("Data written to user_data table successfully.");
+            close(session);
+            System.out.println("Connection to Cassandra closed.");
         } catch (Exception e) {
             System.err.println("Error: " + e);
         }
