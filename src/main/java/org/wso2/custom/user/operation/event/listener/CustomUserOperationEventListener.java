@@ -43,15 +43,18 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
     public static void createTable(CqlSession session, String keyspace, String table){
         // Create a table
+        
         String query = "CREATE TABLE IF NOT EXISTS " + keyspace + "." + table + " (\n" + //
-                        "user_id TEXT PRIMARY KEY, \n" + //
-                        "username TEXT,\n" + //
-                        "credential TEXT,\n" + //
-                        "role_list SET<TEXT>,\n" + //
-                        "claims MAP<TEXT, TEXT>,\n" + //
-                        "profile TEXT,\n" + //
-                        "central_us BOOLEAN,\n" + //
-                        "east_us BOOLEAN,);";
+                        "  central_us BOOLEAN,\n" + //
+                        "  east_us BOOLEAN,\n" + //
+                        "  user_id TEXT,\n" + //
+                        "  username TEXT,\n" + //
+                        "  credential TEXT,\n" + //
+                        "  role_list SET<TEXT>,\n" + //
+                        "  claims MAP<TEXT, TEXT>,\n" + //
+                        "  profile TEXT,\n" + //
+                        "  PRIMARY KEY ((central_us, east_us), user_id)\n" + //
+                        ");";
         session.execute(query);
     }
 

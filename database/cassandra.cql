@@ -15,11 +15,13 @@ CREATE TABLE user_data (
 );
 
 CREATE TABLE IF NOT EXISTS users (
-user_id TEXT PRIMARY KEY, 
-username TEXT,
-credential TEXT,
-role_list SET<TEXT>,
-claims MAP<TEXT, TEXT>,
-profile TEXT,
-central_us BOOLEAN,
-east_us BOOLEAN,);
+  central_us BOOLEAN,
+  east_us BOOLEAN,
+  user_id TEXT,
+  username TEXT,
+  credential TEXT,
+  role_list SET<TEXT>,
+  claims MAP<TEXT, TEXT>,
+  profile TEXT,
+  PRIMARY KEY ((central_us, east_us), user_id)
+);
