@@ -32,6 +32,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
     private String systemUserPrefix = "system_";
     private static final String INSERT_QUERY = "INSERT INTO sync.users (user_id, username, credential, role_list, claims, profile, central_us, east_us) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    private static CqlSession session;
 
     // database connector
     public static void createKeyspace(CqlSession session, String keyspace){
@@ -64,8 +65,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
         String cassandraUsername = dotenv.get("COSMOS_USER_NAME");
         String cassandraPassword = dotenv.get("COSMOS_PASSWORD");   
         String region = dotenv.get("COSMOS_REGION");    
-        String keyspace = dotenv.get("CASSANDRA_KEYSPACE");
-        String table = dotenv.get("CASSANDRA_TABLE");   
+
         
         // put the absolute path to the reference.conf file here
         File file = new File("/home/isuru/Desktop/IAM/wso2-IS-custom-listener/src/main/resources/reference.conf");
@@ -97,10 +97,6 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
         .withAuthCredentials(cassandraUsername, cassandraPassword).build();
 
         System.out.println("Creating session: " + session.getName());
-        createKeyspace(session, keyspace);
-        System.out.println("Keyspace created");
-        createTable(session, keyspace, table);
-        System.out.println("Table created");
         return session;
     }
 
@@ -110,14 +106,8 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
     public static void writeToCassandra(String userName, Object credential, String[] roleList, Map<String, String> claims,
     String profile) {
-        // Cassandra connection parameters
-        Dotenv dotenv = Dotenv.load();     
-        
-        System.out.println("Connecting to Cassandra...");
-        // Establishing connection to Cassandra
 
-        try (CqlSession session = connectToCassandra(dotenv)) {
-            System.out.println("Connected to Cassandra.");
+        try {
             // Writing data to the user_data table
             String userId = claims.get("http://wso2.org/claims/userid");
             Set<String> roleSet = new HashSet<>(Arrays.asList(roleList));
@@ -135,8 +125,8 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
             session.execute(boundStatement);
 
             System.out.println("Data written to user_data table successfully.");
-            close(session);
-            System.out.println("Connection to Cassandra closed.");
+            // close(session);
+            // System.out.println("Connection to Cassandra closed.");
         } catch (Exception e) {
             System.err.println("Error: " + e);
         }
@@ -144,6 +134,16 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
     public CustomUserOperationEventListener() {
         super();
+        Dotenv dotenv = Dotenv.load();
+        String keyspace = dotenv.get("CASSANDRA_KEYSPACE");
+        String table = dotenv.get("CASSANDRA_TABLE");   
+
+        session = connectToCassandra(dotenv);
+        System.out.println("Connected to Cassandra.");
+        createKeyspace(session, keyspace);
+        System.out.println("Keyspace created");
+        createTable(session, keyspace, table);
+        System.out.println("Table created");
     }
 
 
