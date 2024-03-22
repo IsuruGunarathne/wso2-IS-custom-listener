@@ -65,10 +65,11 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
         String cassandraUsername = dotenv.get("COSMOS_USER_NAME");
         String cassandraPassword = dotenv.get("COSMOS_PASSWORD");   
         String region = dotenv.get("COSMOS_REGION");    
+        String ref_path = dotenv.get("COSMOS_REF_PATH");
 
         
         // put the absolute path to the reference.conf file here
-        File file = new File("/home/isuru/Desktop/IAM/wso2-IS-custom-listener/src/main/resources/reference.conf");
+        File file = new File(ref_path);
         // print the content of the file
         System.out.println("File path: " + file.getAbsolutePath());
         System.out.println("File exists: " + file.exists());
