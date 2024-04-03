@@ -1,5 +1,8 @@
 package org.wso2.custom.user.operation.event.listener;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Arrays;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -10,6 +13,8 @@ import org.wso2.carbon.user.core.common.*;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
+import com.datastax.oss.driver.api.core.cql.BoundStatement;
+import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 
 import java.net.InetSocketAddress;
 
@@ -26,8 +31,48 @@ import java.io.File;
 public class CustomUserOperationEventListener extends AbstractUserOperationEventListener {
 
     private String systemUserPrefix = "system_";
+    private static final String INSERT_QUERY = "INSERT INTO sync.users (user_id, username, credential, role_list, claims, profile, central_us, east_us) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_ROLE_QUERY = "INSERT INTO sync.roles (role_name, user_id, central_us, east_us) VALUES (?, ?, ?, ?)";
+    private static CqlSession session;
+    private static String region;
 
     // database connector
+    public static void createKeyspace(CqlSession session, String keyspace){
+        // Create a keyspace
+        String query = "CREATE KEYSPACE IF NOT EXISTS " + keyspace + " WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2};";
+        session.execute(query);
+    }
+
+    public static void createTable(CqlSession session, String keyspace, String table){
+        // Create a table
+        
+        String query = "CREATE TABLE IF NOT EXISTS " + keyspace + "." + table + " (\n" + //
+                        "  central_us BOOLEAN,\n" + //
+                        "  east_us BOOLEAN,\n" + //
+                        "  user_id TEXT,\n" + //
+                        "  username TEXT,\n" + //
+                        "  credential TEXT,\n" + //
+                        "  role_list SET<TEXT>,\n" + //
+                        "  claims MAP<TEXT, TEXT>,\n" + //
+                        "  profile TEXT,\n" + //
+                        "  PRIMARY KEY ((central_us, east_us), user_id)\n" + //
+                        ");";
+        session.execute(query);
+
+        System.out.println("User data table created successfully.");
+
+        // // create table for roles
+        // query = "CREATE TABLE IF NOT EXISTS " + keyspace + ".roles (\n" + //
+        //         "  role_name TEXT,\n" + //
+        //         "  user_id TEXT,\n" + //
+        //         "  central_us BOOLEAN,\n" + //
+        //         "  east_us BOOLEAN,\n" + //
+        //         "  PRIMARY KEY ((central_us, east_us), role_name, user_id)\n" + //
+        //         ");";
+        // session.execute(query);
+
+        // System.out.println("Roles table created successfully.");
+    }
 
     public static CqlSession connectToCassandra(Dotenv dotenv) {
 
@@ -38,10 +83,12 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
         String cassandraUsername = dotenv.get("COSMOS_USER_NAME");
         String cassandraPassword = dotenv.get("COSMOS_PASSWORD");   
-        String region = dotenv.get("COSMOS_REGION");    
+        region = dotenv.get("COSMOS_REGION");    
+        String ref_path = dotenv.get("COSMOS_REF_PATH");
+
         
         // put the absolute path to the reference.conf file here
-        File file = new File("/home/isuru/Desktop/IAM/wso2-IS-custom-listener/src/main/resources/reference.conf");
+        File file = new File(ref_path);
         // print the content of the file
         System.out.println("File path: " + file.getAbsolutePath());
         System.out.println("File exists: " + file.exists());
@@ -77,30 +124,71 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
         session.close();
     }
 
-    public static void test(String userName,Map<String, String>  claims) {
-        // Cassandra connection parameters
-        Dotenv dotenv = Dotenv.load();
+    public static void writeToCassandra(String userName, Object credential, String[] roleList, Map<String, String> claims,
+    String profile) {
 
-        String keyspace = dotenv.get("CASSANDRA_KEYSPACE");
-        String table = dotenv.get("CASSANDRA_TABLE");        
-        
-        System.out.println("Connecting to Cassandra...");
-        // Establishing connection to Cassandra
-
-        try (CqlSession session = connectToCassandra(dotenv)) {
-            System.out.println("Connected to Cassandra.");
+        try {
             // Writing data to the user_data table
-            String query = String.format("INSERT INTO %s.%s (user_id, user_name) VALUES ('%s','%s');", keyspace, table, claims.get("http://wso2.org/claims/userid"),userName);
-            session.execute(query);
+            String userId = claims.get("http://wso2.org/claims/userid");
+            Set<String> roleSet = new HashSet<>(Arrays.asList(roleList));
+            
+            PreparedStatement preparedStatement = session.prepare(INSERT_QUERY);
+            // if region is central, set central_us to true, else set east_us to true
+            boolean central_us = region.equals("Central US");
+            boolean east_us = !central_us;
+            BoundStatement boundStatement = preparedStatement.bind(
+                userId,                // user_id
+                userName,             // username
+                credential.toString(),// credential
+                roleSet,              // role_list
+                claims,               // claims
+                profile,                // profile
+                central_us,               // central_us
+                east_us);             // east_us
+            session.execute(boundStatement);
 
             System.out.println("Data written to user_data table successfully.");
+            // close(session);
+            // System.out.println("Connection to Cassandra closed.");
         } catch (Exception e) {
             System.err.println("Error: " + e);
         }
     }
 
+    public static void writeToCassandraRoles(String roleName, String userId) {
+            
+            try {
+                // Writing data to the user_data table
+                PreparedStatement preparedStatement = session.prepare(INSERT_ROLE_QUERY);
+                boolean central_us = region.equals("Central US");
+                boolean east_us = !central_us;
+                BoundStatement boundStatement = preparedStatement.bind(
+                    roleName,                // role_name
+                    userId,             // user_id
+                    central_us,               // central_us
+                    east_us);             // east_us
+                session.execute(boundStatement);
+    
+                System.out.println("Data written to roles table successfully.");
+                // close(session);
+                // System.out.println("Connection to Cassandra closed.");
+            } catch (Exception e) {
+                System.err.println("Error: " + e);
+            }
+    }
+
     public CustomUserOperationEventListener() {
         super();
+        Dotenv dotenv = Dotenv.load();
+        String keyspace = dotenv.get("CASSANDRA_KEYSPACE");
+        String table = dotenv.get("CASSANDRA_TABLE");   
+
+        session = connectToCassandra(dotenv);
+        System.out.println("Connected to Cassandra.");
+        createKeyspace(session, keyspace);
+        System.out.println("Keyspace created");
+        createTable(session, keyspace, table);
+        System.out.println("Table created");
     }
 
 
@@ -157,8 +245,29 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                 }
                 System.out.println("");
                 System.out.println("");
-                test(userName,claims);
+                System.out.println("Writing to Cassandra");
+                writeToCassandra(userName, credential, roleList, claims, profile);
 
+        return true;
+    }
+
+    @Override
+    public boolean doPostUpdateUserListOfRoleWithID(String roleName, String[] deletedUsers, String[] newUsers,
+            UserStoreManager userStoreManager) throws UserStoreException {
+                System.out.println("doPostUpdateUserListOfRoleWithID");
+                System.out.println("Role Name: " + roleName);
+                System.out.println("Deleted Users: ");
+                for (String userId : deletedUsers) {
+                    System.out.println(userId);
+                }
+                System.out.println("New Users: ");
+                for (String userId : newUsers) {
+                    System.out.println(userId);
+                }
+
+                // get first user id
+                String userId = newUsers[0];
+                // writeToCassandraRoles(roleName, userId);
         return true;
     }
 }
