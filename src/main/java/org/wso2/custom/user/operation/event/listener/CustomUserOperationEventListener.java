@@ -61,17 +61,17 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
         System.out.println("User data table created successfully.");
 
-        // create table for roles
-        query = "CREATE TABLE IF NOT EXISTS " + keyspace + ".roles (\n" + //
-                "  role_name TEXT,\n" + //
-                "  user_id TEXT,\n" + //
-                "  central_us BOOLEAN,\n" + //
-                "  east_us BOOLEAN,\n" + //
-                "  PRIMARY KEY ((central_us, east_us), role_name, user_id)\n" + //
-                ");";
-        session.execute(query);
+        // // create table for roles
+        // query = "CREATE TABLE IF NOT EXISTS " + keyspace + ".roles (\n" + //
+        //         "  role_name TEXT,\n" + //
+        //         "  user_id TEXT,\n" + //
+        //         "  central_us BOOLEAN,\n" + //
+        //         "  east_us BOOLEAN,\n" + //
+        //         "  PRIMARY KEY ((central_us, east_us), role_name, user_id)\n" + //
+        //         ");";
+        // session.execute(query);
 
-        System.out.println("Roles table created successfully.");
+        // System.out.println("Roles table created successfully.");
     }
 
     public static CqlSession connectToCassandra(Dotenv dotenv) {
@@ -267,7 +267,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
                 // get first user id
                 String userId = newUsers[0];
-                writeToCassandraRoles(roleName, userId);
+                // writeToCassandraRoles(roleName, userId);
         return true;
     }
 }
