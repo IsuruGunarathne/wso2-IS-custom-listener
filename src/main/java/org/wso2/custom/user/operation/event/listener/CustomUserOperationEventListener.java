@@ -209,5 +209,21 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
         return true;
     }
+
+    @Override
+    public boolean doPostUpdateUserListOfRoleWithID(String roleName, String[] deletedUsers, String[] newUsers,
+            UserStoreManager userStoreManager) throws UserStoreException {
+                System.out.println("doPostUpdateUserListOfRoleWithID");
+                System.out.println("Role Name: " + roleName);
+                System.out.println("Deleted Users: ");
+                for (String userId : deletedUsers) {
+                    System.out.println(userId);
+                }
+                System.out.println("New Users: ");
+                for (String userId : newUsers) {
+                    System.out.println(userId);
+                }
+        return true;
+    }
 }
 
