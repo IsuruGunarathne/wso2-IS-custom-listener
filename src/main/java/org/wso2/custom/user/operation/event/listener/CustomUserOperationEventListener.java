@@ -32,7 +32,9 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
     private String systemUserPrefix = "system_";
     private static final String INSERT_QUERY = "INSERT INTO sync.users (user_id, username, credential, role_list, claims, profile, central_us, east_us) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_ROLE_QUERY = "INSERT INTO sync.roles (role_name, user_id, central_us, east_us) VALUES (?, ?, ?, ?)";
     private static CqlSession session;
+    private static String region;
 
     // database connector
     public static void createKeyspace(CqlSession session, String keyspace){
@@ -56,6 +58,20 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                         "  PRIMARY KEY ((central_us, east_us), user_id)\n" + //
                         ");";
         session.execute(query);
+
+        System.out.println("User data table created successfully.");
+
+        // create table for roles
+        query = "CREATE TABLE IF NOT EXISTS " + keyspace + ".roles (\n" + //
+                "  role_name TEXT,\n" + //
+                "  user_id TEXT,\n" + //
+                "  central_us BOOLEAN,\n" + //
+                "  east_us BOOLEAN,\n" + //
+                "  PRIMARY KEY ((central_us, east_us), role_name, user_id)\n" + //
+                ");";
+        session.execute(query);
+
+        System.out.println("Roles table created successfully.");
     }
 
     public static CqlSession connectToCassandra(Dotenv dotenv) {
@@ -67,7 +83,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
         String cassandraUsername = dotenv.get("COSMOS_USER_NAME");
         String cassandraPassword = dotenv.get("COSMOS_PASSWORD");   
-        String region = dotenv.get("COSMOS_REGION");    
+        region = dotenv.get("COSMOS_REGION");    
         String ref_path = dotenv.get("COSMOS_REF_PATH");
 
         
@@ -117,6 +133,9 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
             Set<String> roleSet = new HashSet<>(Arrays.asList(roleList));
             
             PreparedStatement preparedStatement = session.prepare(INSERT_QUERY);
+            // if region is central, set central_us to true, else set east_us to true
+            boolean central_us = region.equals("Central US");
+            boolean east_us = !central_us;
             BoundStatement boundStatement = preparedStatement.bind(
                 userId,                // user_id
                 userName,             // username
@@ -124,8 +143,8 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                 roleSet,              // role_list
                 claims,               // claims
                 profile,                // profile
-                true,               // central_us
-                false);             // east_us
+                central_us,               // central_us
+                east_us);             // east_us
             session.execute(boundStatement);
 
             System.out.println("Data written to user_data table successfully.");
@@ -134,6 +153,28 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
         } catch (Exception e) {
             System.err.println("Error: " + e);
         }
+    }
+
+    public static void writeToCassandraRoles(String roleName, String userId) {
+            
+            try {
+                // Writing data to the user_data table
+                PreparedStatement preparedStatement = session.prepare(INSERT_ROLE_QUERY);
+                boolean central_us = region.equals("Central US");
+                boolean east_us = !central_us;
+                BoundStatement boundStatement = preparedStatement.bind(
+                    roleName,                // role_name
+                    userId,             // user_id
+                    central_us,               // central_us
+                    east_us);             // east_us
+                session.execute(boundStatement);
+    
+                System.out.println("Data written to roles table successfully.");
+                // close(session);
+                // System.out.println("Connection to Cassandra closed.");
+            } catch (Exception e) {
+                System.err.println("Error: " + e);
+            }
     }
 
     public CustomUserOperationEventListener() {
@@ -223,6 +264,10 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                 for (String userId : newUsers) {
                     System.out.println(userId);
                 }
+
+                // get first user id
+                String userId = newUsers[0];
+                writeToCassandraRoles(roleName, userId);
         return true;
     }
 }
