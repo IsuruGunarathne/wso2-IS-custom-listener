@@ -6,7 +6,7 @@ generate_username() {
 }
 
 # Loop to make the API call 1000 times
-for ((i=1; i<=1000; i++)); do
+for ((i=1; i<=100; i++)); do
     # Generate a random username
     random_username=$(generate_username)
 
