@@ -23,5 +23,6 @@ CREATE TABLE IF NOT EXISTS users (
   role_list SET<TEXT>,
   claims MAP<TEXT, TEXT>,
   profile TEXT,
-  PRIMARY KEY ((central_us, east_us), user_id)
+  do_delete BOOLEAN,
+  PRIMARY KEY ((central_us, east_us, delete), user_id)
 );

@@ -31,7 +31,7 @@ import java.io.File;
 public class CustomUserOperationEventListener extends AbstractUserOperationEventListener {
 
     private String systemUserPrefix = "system_";
-    private static final String INSERT_QUERY = "INSERT INTO sync.users (user_id, username, credential, role_list, claims, profile, central_us, east_us) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_QUERY = "INSERT INTO sync.users (user_id, username, credential, role_list, claims, profile, central_us, east_us, do_delete) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String INSERT_ROLE_QUERY = "INSERT INTO sync.roles (role_name, user_id, central_us, east_us) VALUES (?, ?, ?, ?)";
     private static CqlSession session;
     private static String region;
@@ -55,6 +55,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                         "  role_list SET<TEXT>,\n" + //
                         "  claims MAP<TEXT, TEXT>,\n" + //
                         "  profile TEXT,\n" + //
+                        "  do_delete BOOLEAN,\n" + //
                         "  PRIMARY KEY ((central_us, east_us), user_id)\n" + //
                         ");";
         session.execute(query);
@@ -144,7 +145,8 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                 claims,               // claims
                 profile,                // profile
                 central_us,               // central_us
-                east_us);             // east_us
+                east_us,                   // east_us
+                false);                 // do_delete
             session.execute(boundStatement);
 
             System.out.println("Data written to user_data table successfully.");
