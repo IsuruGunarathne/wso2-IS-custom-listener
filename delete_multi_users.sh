@@ -15,3 +15,6 @@ while IFS= read -r user_id; do
   
   echo "Deleted user with ID: $user_id"
 done < "user_id.txt"
+
+# Remove user_id.txt
+rm user_id.txt
