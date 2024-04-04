@@ -31,7 +31,7 @@ import java.io.File;
 public class CustomUserOperationEventListener extends AbstractUserOperationEventListener {
 
     private String systemUserPrefix = "system_";
-    private static final String INSERT_QUERY = "INSERT INTO sync.users (user_id, username, credential, role_list, claims, profile, central_us, east_us) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_QUERY = "INSERT INTO sync.users (user_id, username, credential, role_list, claims, profile, central_us, east_us, do_delete) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String INSERT_ROLE_QUERY = "INSERT INTO sync.roles (role_name, user_id, central_us, east_us) VALUES (?, ?, ?, ?)";
     private static CqlSession session;
     private static String region;
@@ -55,23 +55,24 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                         "  role_list SET<TEXT>,\n" + //
                         "  claims MAP<TEXT, TEXT>,\n" + //
                         "  profile TEXT,\n" + //
+                        "  do_delete BOOLEAN,\n" + //
                         "  PRIMARY KEY ((central_us, east_us), user_id)\n" + //
                         ");";
         session.execute(query);
 
         System.out.println("User data table created successfully.");
 
-        // // create table for roles
-        // query = "CREATE TABLE IF NOT EXISTS " + keyspace + ".roles (\n" + //
-        //         "  role_name TEXT,\n" + //
-        //         "  user_id TEXT,\n" + //
-        //         "  central_us BOOLEAN,\n" + //
-        //         "  east_us BOOLEAN,\n" + //
-        //         "  PRIMARY KEY ((central_us, east_us), role_name, user_id)\n" + //
-        //         ");";
-        // session.execute(query);
+        // create table for roles
+        query = "CREATE TABLE IF NOT EXISTS " + keyspace + ".roles (\n" + //
+                "  role_name TEXT,\n" + //
+                "  user_id TEXT,\n" + //
+                "  central_us BOOLEAN,\n" + //
+                "  east_us BOOLEAN,\n" + //
+                "  PRIMARY KEY ((central_us, east_us), role_name, user_id)\n" + //
+                ");";
+        session.execute(query);
 
-        // System.out.println("Roles table created successfully.");
+        System.out.println("Roles table created successfully.");
     }
 
     public static CqlSession connectToCassandra(Dotenv dotenv) {
@@ -144,7 +145,8 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                 claims,               // claims
                 profile,                // profile
                 central_us,               // central_us
-                east_us);             // east_us
+                east_us,                   // east_us
+                false);                 // do_delete
             session.execute(boundStatement);
 
             System.out.println("Data written to user_data table successfully.");
@@ -267,7 +269,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
 
                 // get first user id
                 String userId = newUsers[0];
-                // writeToCassandraRoles(roleName, userId);
+                writeToCassandraRoles(roleName, userId);
         return true;
     }
 }
