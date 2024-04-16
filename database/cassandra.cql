@@ -24,5 +24,5 @@ CREATE TABLE IF NOT EXISTS users (
   claims MAP<TEXT, TEXT>,
   profile TEXT,
   do_delete BOOLEAN,
-  PRIMARY KEY ((central_us, east_us, delete), user_id)
+  PRIMARY KEY ((central_us, east_us, do_delete), user_id)
 );
