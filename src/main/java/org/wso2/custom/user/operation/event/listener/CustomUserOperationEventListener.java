@@ -272,5 +272,46 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                 writeToCassandraRoles(roleName, userId);
         return true;
     }
+
+    @Override
+    public boolean doPostDeleteUserWithID
+            (String s, UserStoreManager userStoreManager) throws UserStoreException {
+                
+                Dotenv dotenv = Dotenv.load();
+                String keyspace = dotenv.get("CASSANDRA_KEYSPACE");
+                String table = dotenv.get("CASSANDRA_TABLE");
+                final String DELETE_USER_QUERY = "INSERT INTO "+ keyspace +"."+table+" (user_id, username, credential, role_list, claims, profile, central_us, east_us, do_delete) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+                try {
+
+                    // Prepare the delete statement
+                    PreparedStatement preparedStatement = session.prepare(DELETE_USER_QUERY);
+
+                    // Select the Region
+                    boolean central_us = region.equals("Central US");
+                    boolean east_us = !central_us;
+
+                    // Bind the values to the statement
+                    BoundStatement boundStatement = preparedStatement.bind(
+                        s,                
+                        null,            
+                        null,        
+                        null,           
+                        null,               
+                        null,
+                        central_us,
+                        east_us,
+                        true
+                        );
+
+                    // Execute the delete statement
+                    session.execute(boundStatement);
+                }
+                catch (Exception e) {
+                    System.err.println("Error: " + e);
+                }
+        
+            return true;
+    }
 }
 
