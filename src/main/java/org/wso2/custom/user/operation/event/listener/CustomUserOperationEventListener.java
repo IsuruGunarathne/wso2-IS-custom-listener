@@ -56,7 +56,7 @@ public class CustomUserOperationEventListener extends AbstractUserOperationEvent
                         "  claims MAP<TEXT, TEXT>,\n" + //
                         "  profile TEXT,\n" + //
                         "  do_delete BOOLEAN,\n" + //
-                        "  PRIMARY KEY ((central_us, east_us), user_id)\n" + //
+                        "  PRIMARY KEY ((central_us, east_us, do_delete), user_id)\n" + //
                         ");";
         session.execute(query);
 
